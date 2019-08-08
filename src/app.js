@@ -12,7 +12,7 @@ window.__PIXI_INSPECTOR_GLOBAL_HOOK__ &&
 window.__PIXI_INSPECTOR_GLOBAL_HOOK__.register({ PIXI: PIXI });
 
 const app = new PIXI.Application({
-    backgroundColor: 0x1099bb,
+    backgroundColor: 0xffffff,
     width: 960,
     height: 536,
 });
@@ -20,12 +20,20 @@ const app = new PIXI.Application({
 document.body.appendChild(app.view);
 
 SYMBOLS.concat(SPINS).concat(BG).forEach((path) => app.loader.add(path, path));
-app.loader.load(onAssetsLoaded);
+app.loader.load(() => setTimeout(onAssetsLoaded, 2000));
 
 const REEL_COUNT = 3;
 
+const loadingMsg = new PIXI.Text('Loading game...');
+loadingMsg.x = (app.screen.width - loadingMsg.width ) / 2;
+loadingMsg.y = (app.screen.height - loadingMsg.height ) / 2;
+
+app.stage.addChild(loadingMsg);
+
 // onAssetsLoaded handler builds the example.
 function onAssetsLoaded() {
+    loadingMsg.destroy();
+
     const background = PIXI.Sprite.from('assets/BG.png');
     background.x = 0;
     background.y = 0;
@@ -33,6 +41,7 @@ function onAssetsLoaded() {
 
     // Build the reels
     const reels = [];
+    window.reels = reels; //@TODO: remove
     const reelContainer = new PIXI.Container();
     for (let i = 0; i < REEL_COUNT; i++) {
         const reel = createReel();
@@ -62,40 +71,42 @@ function onAssetsLoaded() {
         running = true;
 
         for (let i = 0; i < reels.length; i++) {
-            const r = reels[i];
+            const currentReel = reels[i];
             const extra = Math.floor(Math.random() * 3);
-            const target = r.position + 10 + i * 5 + extra;
+            const target = currentReel.position + 10 + i * 5 + extra;
             const time = 2500 + i * 600 + extra * 600;
-            tweenTo(r, 'position', target, time, backout(0.5), null, i === reels.length - 1 ? reelsComplete : null);
+            tweenTo(currentReel, 'position', target, time, backout(0.5), null, i === reels.length - 1 ? reelsComplete : null);
         }
     }
 
     // Reels done handler.
     function reelsComplete() {
         running = false;
+
+        console.log('complete');
     }
 
     // Listen for animate update.
     app.ticker.add((delta) => {
         // Update the slots.
         for (let i = 0; i < reels.length; i++) {
-            const r = reels[i];
+            const currentReel = reels[i];
             // Update blur filter y amount based on speed.
             // This would be better if calculated with time in mind also. Now blur depends on frame rate.
-            r.blur.blurY = (r.position - r.previousPosition) * 8;
-            r.previousPosition = r.position;
+            currentReel.blur.blurY = (currentReel.position - currentReel.previousPosition) * 8;
+            currentReel.previousPosition = currentReel.position;
 
             // Update symbol positions on reel.
-            for (let j = 0; j < r.symbols.length; j++) {
-                const s = r.symbols[j];
-                const prevy = s.y;
-                s.y = ((r.position + j) % r.symbols.length) * SYMBOL_SIZE - SYMBOL_SIZE;
-                if (s.y < 0 && prevy > SYMBOL_SIZE) {
+            for (let j = 0; j < currentReel.symbols.length; j++) {
+                const symbol = currentReel.symbols[j];
+                const prevY = symbol.y;
+                symbol.y = ((currentReel.position + j) % currentReel.symbols.length) * SYMBOL_SIZE - SYMBOL_SIZE;
+                if (symbol.y < 0 && prevY > SYMBOL_SIZE) {
                     // Detect going over and swap a texture.
                     // This should in proper product be determined from some logical reel.
-                    s.texture = slotTextures[Math.floor(Math.random() * slotTextures.length)];
-                    s.scale.x = s.scale.y = Math.min(SYMBOL_SIZE / s.texture.width, SYMBOL_SIZE / s.texture.height);
-                    s.x = Math.round((SYMBOL_SIZE - s.width) / 2);
+                    symbol.texture = slotTextures[Math.floor(Math.random() * slotTextures.length)];
+                    symbol.scale.x = symbol.scale.y = Math.min(SYMBOL_SIZE / symbol.texture.width, SYMBOL_SIZE / symbol.texture.height);
+                    symbol.x = Math.round((SYMBOL_SIZE - symbol.width) / 2);
                 }
             }
         }
