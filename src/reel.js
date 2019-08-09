@@ -3,6 +3,7 @@ import { slotTextures} from "./textures";
 
 export const SYMBOL_SIZE = 233;
 export const REEL_WIDTH = 233;
+export const SYMBOLS_PER_REEL = slotTextures.length;
 
 export function createReel() {
     const rc = new PIXI.Container();
@@ -18,7 +19,7 @@ export function createReel() {
     rc.filters = [reel.blur];
 
 // Build the symbols
-    for (let j = 0; j < slotTextures.length; j++) {
+    for (let j = 0; j < SYMBOLS_PER_REEL; j++) {
         const symbol = new PIXI.Sprite(slotTextures[Math.floor(Math.random() * slotTextures.length)]);
         // Scale the symbol to fit symbol area.
         symbol.y = j * SYMBOL_SIZE;

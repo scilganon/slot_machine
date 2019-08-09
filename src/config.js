@@ -1,5 +1,6 @@
+export const WILD_SYMBOL = 'assets/SYM1.png';
+
 export const SYMBOLS = [
-    'assets/SYM1.png',
     'assets/SYM3.png',
     'assets/SYM4.png',
     'assets/SYM5.png',
