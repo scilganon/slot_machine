@@ -7,9 +7,8 @@ export class WinMsg extends PIXI.Container {
         this.x = 0;
         this.y = 0;
 
-        this.interactive = false;
-        this.buttonMode = false;
-        this.visible = false;
+        this.interactive = true;
+        this.buttonMode = true;
 
         let bgGraphics = new PIXI.Graphics();
         bgGraphics.beginFill(color, 1);

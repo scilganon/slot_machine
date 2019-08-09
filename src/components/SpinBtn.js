@@ -5,7 +5,8 @@ export class SpinBtn extends PIXI.Sprite {
     constructor(texture = btnTextures[1]) {
         super(texture);
 
-        this.enable();
+        this.interactive = true;
+        this.buttonMode = true;
 
         this.addListener('pointerover', () => {
             this.texture = btnTextures[0];
@@ -24,6 +25,6 @@ export class SpinBtn extends PIXI.Sprite {
     enable(){
         this.interactive = true;
         this.buttonMode = true;
-        this.texture = btnTextures[0];
+        this.texture = btnTextures[1];
     }
 }

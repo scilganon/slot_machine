@@ -48,16 +48,6 @@ const winMsg = new WinMsg({
     x: 70
 });
 
-function showWinMsg(){
-    winMsg.visible = true;
-    app.stage.addChild(winMsg);
-
-    setTimeout(() => {
-        app.stage.removeChild(winMsg);
-    }, 3000);
-}
-
-// onAssetsLoaded handler builds the example.
 function onAssetsLoaded() {
     loadingMsg.destroy();
 
@@ -90,9 +80,22 @@ function onAssetsLoaded() {
 
     app.stage.addChild(spinBtn);
 
+    winMsg.addListener('pointerdown', () => hideWinMsg());
+
+    function hideWinMsg() {
+        app.stage.removeChild(winMsg);
+        spinBtn.enable();
+    }
+
+    function showWinMsg(){
+        spinBtn.disable();
+        app.stage.addChild(winMsg);
+
+        setTimeout(() => hideWinMsg(), 3000);
+    }
+
     let running = false;
 
-    // Function to start playing.
     function startPlay() {
         if (running) return;
         running = true;
