@@ -96,6 +96,7 @@ function onAssetsLoaded() {
     function startPlay() {
         if (running) return;
         running = true;
+        spinBtn.disable();
 
         for (let i = 0; i < reels.length; i++) {
             const currentReel = reels[i];
@@ -121,6 +122,7 @@ function onAssetsLoaded() {
     // Reels done handler.
     function reelsComplete() {
         running = false;
+        spinBtn.enable();
 
         if(isWon()){
             showWinMsg();
