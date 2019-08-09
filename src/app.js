@@ -2,10 +2,10 @@ import * as PIXI from "pixi.js";
 import {backout, lerp} from "./utils/math";
 import {SPINS, SYMBOLS, BG, WILD_SYMBOL } from "./config";
 import { SpinBtn } from "./components/SpinBtn";
-import { REEL_WIDTH, SYMBOLS_PER_REEL, Reel } from "./components/Reel";
 import { SYMBOL_SIZE } from "./components/Symbol";
 import { WinMsg } from "./components/WinMsg";
 import { LoadingMsg } from "./components/LoadingMsg";
+import { Roller } from "./components/ReelContainer";
 
 // for debug in chrome
 // @see https://github.com/bfanger/pixi-inspector/issues/35#issuecomment-518009811
@@ -21,18 +21,13 @@ const app = new PIXI.Application({
 
 document.body.appendChild(app.view);
 
-const WILD_CACHE_KEY = 'wild';
-
 SYMBOLS
     .concat(SPINS)
-    .concat([BG])
+    .concat([BG, WILD_SYMBOL])
     .forEach((path) => app.loader.add(path, path));
 
 app.loader
-    .add(WILD_CACHE_KEY, WILD_SYMBOL)
     .load(() => setTimeout(onAssetsLoaded, 200));
-
-const REEL_COUNT = 3;
 
 const loadingMsg = new LoadingMsg();
 loadingMsg.x = (app.screen.width - loadingMsg.width ) / 2;
@@ -56,17 +51,9 @@ function onAssetsLoaded() {
     background.y = 0;
     app.stage.addChild(background);
 
-    // Build the reels
-    const reels = [];
-    const reelContainer = new PIXI.Container();
-    for (let i = 0; i < REEL_COUNT; i++) {
-        const reel = new Reel();
 
-        reel.container.x = i * (REEL_WIDTH + 8 * (i > 0));
-
-        reels.push(reel);
-        reelContainer.addChild(reel.container);
-    }
+    const reelContainer = new Roller();
+    const { reels } = reelContainer ;
     reelContainer.y = - app.screen.height / 2;
     reelContainer.x = 70;
     app.stage.addChild(reelContainer);
@@ -111,13 +98,8 @@ function onAssetsLoaded() {
     }
 
     function isWon(){
-        const combination = reels
-            .map((reel) => Math.floor((reel.position + 4) % SYMBOLS_PER_REEL)) // position of prev 4th symbol
-            .map((pos) =>  4 + SYMBOLS_PER_REEL * (pos > 4) - pos) // dist between 4th and current
-            .map((dist) => (4 + dist) % SYMBOLS_PER_REEL) // pos of current 4th
-            .map((pos, index) => reels[index].symbols[pos].texture.textureCacheIds[0]);
-
-        const countOfWilds = combination.filter((cacheKey) => cacheKey === WILD_CACHE_KEY).length;
+        const symbols = reelContainer.getCurrentCombination();
+        const countOfWilds = symbols.filter((symbol) => symbol.isWild()).length;
 
         return countOfWilds > 0 && countOfWilds < 3;
     }
