@@ -20,6 +20,6 @@ export class Symbol extends PIXI.Sprite {
     }
 
     isWild() {
-        return texture.textureCacheIds[0] === WILD_SYMBOL;
+        return this.texture.textureCacheIds[0] === WILD_SYMBOL;
     }
 }

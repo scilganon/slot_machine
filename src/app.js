@@ -1,8 +1,6 @@
 import * as PIXI from "pixi.js";
-import {backout, lerp} from "./utils/math";
 import {SPINS, SYMBOLS, BG, WILD_SYMBOL } from "./config";
 import { SpinBtn } from "./components/SpinBtn";
-import { SYMBOL_SIZE } from "./components/Symbol";
 import { WinMsg } from "./components/WinMsg";
 import { LoadingMsg } from "./components/LoadingMsg";
 import { Roller } from "./components/ReelContainer";
@@ -53,7 +51,6 @@ function onAssetsLoaded() {
 
 
     const reelContainer = new Roller();
-    const { reels } = reelContainer ;
     reelContainer.y = - app.screen.height / 2;
     reelContainer.x = 70;
     app.stage.addChild(reelContainer);
@@ -83,22 +80,17 @@ function onAssetsLoaded() {
 
     let running = false;
 
-    function startPlay() {
+    async function startPlay() {
         if (running) return;
         running = true;
         spinBtn.disable();
 
-        for (let i = 0; i < reels.length; i++) {
-            const currentReel = reels[i];
-            const extra = Math.floor(Math.random() * 3);
-            const target = currentReel.position + 10 + i * 5 + extra;
-            const time = 2500 + i * 600 + extra * 600;
-            tweenTo(currentReel, 'position', target, time, backout(0.5), null, i === reels.length - 1 ? reelsComplete : null);
-        }
+        await reelContainer.roll();
+        reelsComplete();
     }
 
     function isWon(){
-        const symbols = reelContainer.getCurrentCombination();
+        const symbols = reelContainer.getCurrentCombinationOnPosition(4);
         const countOfWilds = symbols.filter((symbol) => symbol.isWild()).length;
 
         return countOfWilds > 0 && countOfWilds < 3;
@@ -114,69 +106,6 @@ function onAssetsLoaded() {
         }
     }
 
-    // Listen for animate update.
-    app.ticker.add((delta) => {
-        // Update the slots.
-        for (let i = 0; i < reels.length; i++) {
-            const currentReel = reels[i];
-            // Update blur filter y amount based on speed.
-            // This would be better if calculated with time in mind also. Now blur depends on frame rate.
-            currentReel.blur.blurY = (currentReel.position - currentReel.previousPosition) * 8;
-            currentReel.previousPosition = currentReel.position;
-
-            // Update symbol positions on reel.
-            for (let j = 0; j < currentReel.symbols.length; j++) {
-                const symbol = currentReel.symbols[j];
-                const prevY = symbol.y;
-                symbol.y = ((currentReel.position + j) % currentReel.symbols.length) * SYMBOL_SIZE - SYMBOL_SIZE;
-                if (symbol.y < 0 && prevY > SYMBOL_SIZE) {
-                    // Detect going over and swap a texture.
-                    // This should in proper product be determined from some logical reel.
-                    symbol.setRandomTexture();
-                    symbol.scale.x = symbol.scale.y = Math.min(SYMBOL_SIZE / symbol.texture.width, SYMBOL_SIZE / symbol.texture.height);
-                    symbol.x = Math.round((SYMBOL_SIZE - symbol.width) / 2);
-                }
-            }
-        }
-    });
+    app.ticker.add((delta) => reelContainer.tickUpdateSymbols());
+    app.ticker.add((delta) => reelContainer.tickAnimationUpdate());
 }
-
-// Very simple tweening utility function. This should be replaced with a proper tweening library in a real product.
-const tweening = [];
-function tweenTo(object, property, target, time, easing, onchange, oncomplete) {
-    const tween = {
-        object,
-        property,
-        propertyBeginValue: object[property],
-        target,
-        easing,
-        time,
-        change: onchange,
-        complete: oncomplete,
-        start: Date.now(),
-    };
-
-    tweening.push(tween);
-    return tween;
-}
-// Listen for animate update.
-app.ticker.add((delta) => {
-    const now = Date.now();
-    const remove = [];
-    for (let i = 0; i < tweening.length; i++) {
-        const t = tweening[i];
-        const phase = Math.min(1, (now - t.start) / t.time);
-
-        t.object[t.property] = lerp(t.propertyBeginValue, t.target, t.easing(phase));
-        if (t.change) t.change(t);
-        if (phase === 1) {
-            t.object[t.property] = t.target;
-            if (t.complete) t.complete(t);
-            remove.push(t);
-        }
-    }
-    for (let i = 0; i < remove.length; i++) {
-        tweening.splice(tweening.indexOf(remove[i]), 1);
-    }
-});
-
