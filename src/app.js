@@ -1,9 +1,11 @@
 import * as PIXI from "pixi.js";
-import {backout, lerp} from "./math";
+import {backout, lerp} from "./utils/math";
 import {SPINS, SYMBOLS, BG, WILD_SYMBOL } from "./config";
-import { spinBtn } from "./spinButton";
-import { createReel, SYMBOL_SIZE, REEL_WIDTH, SYMBOLS_PER_REEL } from "./reel";
-import { createWinMsg } from "./winMsg";
+import { SpinBtn } from "./components/SpinBtn";
+import { REEL_WIDTH, SYMBOLS_PER_REEL, Reel } from "./components/Reel";
+import { SYMBOL_SIZE } from "./components/Symbol";
+import { WinMsg } from "./components/WinMsg";
+import { LoadingMsg } from "./components/LoadingMsg";
 
 // for debug in chrome
 // @see https://github.com/bfanger/pixi-inspector/issues/35#issuecomment-518009811
@@ -23,7 +25,7 @@ const WILD_CACHE_KEY = 'wild';
 
 SYMBOLS
     .concat(SPINS)
-    .concat(BG)
+    .concat([BG])
     .forEach((path) => app.loader.add(path, path));
 
 app.loader
@@ -32,13 +34,13 @@ app.loader
 
 const REEL_COUNT = 3;
 
-const loadingMsg = new PIXI.Text('Loading game...');
+const loadingMsg = new LoadingMsg();
 loadingMsg.x = (app.screen.width - loadingMsg.width ) / 2;
 loadingMsg.y = (app.screen.height - loadingMsg.height ) / 2;
 
 app.stage.addChild(loadingMsg);
 
-const winMsg = createWinMsg({
+const winMsg = new WinMsg({
     color: 0x00ff00,
     height: 360,
     width: 720,
@@ -59,17 +61,16 @@ function showWinMsg(){
 function onAssetsLoaded() {
     loadingMsg.destroy();
 
-    const background = PIXI.Sprite.from('assets/BG.png');
+    const background = PIXI.Sprite.from(BG);
     background.x = 0;
     background.y = 0;
     app.stage.addChild(background);
 
     // Build the reels
     const reels = [];
-    window.reels = reels; //@TODO: remove
     const reelContainer = new PIXI.Container();
     for (let i = 0; i < REEL_COUNT; i++) {
-        const reel = createReel();
+        const reel = new Reel();
 
         reel.container.x = i * (REEL_WIDTH + 8 * (i > 0));
 
@@ -82,6 +83,7 @@ function onAssetsLoaded() {
 
     //interactive btn
     const innerMargin = 10;
+    const spinBtn = new SpinBtn();
     spinBtn.x = app.screen.width - spinBtn.width - 28 - innerMargin;
     spinBtn.y = (app.screen.height - spinBtn.width) / 2;
     spinBtn.addListener('pointerdown', () => startPlay());
@@ -143,7 +145,7 @@ function onAssetsLoaded() {
                 if (symbol.y < 0 && prevY > SYMBOL_SIZE) {
                     // Detect going over and swap a texture.
                     // This should in proper product be determined from some logical reel.
-                    symbol.texture = slotTextures[Math.floor(Math.random() * slotTextures.length)];
+                    symbol.setRandomTexture();
                     symbol.scale.x = symbol.scale.y = Math.min(SYMBOL_SIZE / symbol.texture.width, SYMBOL_SIZE / symbol.texture.height);
                     symbol.x = Math.round((SYMBOL_SIZE - symbol.width) / 2);
                 }

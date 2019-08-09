@@ -13,6 +13,4 @@ export const SPINS = [
     'assets/BTN_Spin_d.png'
 ];
 
-export const BG = [
-    'assets/BG.png'
-];
+export const BG = 'assets/BG.png';
