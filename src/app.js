@@ -60,7 +60,7 @@ function onAssetsLoaded() {
     const spinBtn = new SpinBtn();
     spinBtn.x = app.screen.width - spinBtn.width - 28 - innerMargin;
     spinBtn.y = (app.screen.height - spinBtn.width) / 2;
-    spinBtn.addListener('pointerdown', () => startPlay());
+    spinBtn.addListener('pointerdown', () => playGame());
 
     app.stage.addChild(spinBtn);
 
@@ -80,13 +80,19 @@ function onAssetsLoaded() {
 
     let running = false;
 
-    async function startPlay() {
+    async function playGame() {
         if (running) return;
         running = true;
         spinBtn.disable();
 
         await reelContainer.roll();
-        reelsComplete();
+
+        running = false;
+        spinBtn.enable();
+
+        if(isWon()){
+            showWinMsg();
+        }
     }
 
     function isWon(){
@@ -94,16 +100,6 @@ function onAssetsLoaded() {
         const countOfWilds = symbols.filter((symbol) => symbol.isWild()).length;
 
         return countOfWilds > 0 && countOfWilds < 3;
-    }
-
-    // Reels done handler.
-    function reelsComplete() {
-        running = false;
-        spinBtn.enable();
-
-        if(isWon()){
-            showWinMsg();
-        }
     }
 
     app.ticker.add((delta) => reelContainer.tickUpdateSymbols());
