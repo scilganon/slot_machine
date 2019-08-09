@@ -3,7 +3,7 @@ import {backout, lerp} from "./math";
 import {SPINS, SYMBOLS, BG, WILD_SYMBOL } from "./config";
 import { spinBtn } from "./spinButton";
 import { createReel, SYMBOL_SIZE, REEL_WIDTH, SYMBOLS_PER_REEL } from "./reel";
-import {slotTextures} from "./textures";
+import { createWinMsg } from "./winMsg";
 
 // for debug in chrome
 // @see https://github.com/bfanger/pixi-inspector/issues/35#issuecomment-518009811
@@ -37,6 +37,23 @@ loadingMsg.x = (app.screen.width - loadingMsg.width ) / 2;
 loadingMsg.y = (app.screen.height - loadingMsg.height ) / 2;
 
 app.stage.addChild(loadingMsg);
+
+const winMsg = createWinMsg({
+    color: 0x00ff00,
+    height: 360,
+    width: 720,
+    y: 110,
+    x: 70
+});
+
+function showWinMsg(){
+    winMsg.visible = true;
+    app.stage.addChild(winMsg);
+
+    setTimeout(() => {
+        app.stage.removeChild(winMsg);
+    }, 3000);
+}
 
 // onAssetsLoaded handler builds the example.
 function onAssetsLoaded() {
@@ -104,7 +121,7 @@ function onAssetsLoaded() {
         running = false;
 
         if(isWon()){
-            alert("WIN")
+            showWinMsg();
         }
     }
 
