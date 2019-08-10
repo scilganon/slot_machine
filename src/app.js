@@ -4,6 +4,7 @@ import { SpinBtn } from "./components/SpinBtn";
 import { WinMsg } from "./components/WinMsg";
 import { LoadingMsg } from "./components/LoadingMsg";
 import { Roller } from "./components/ReelContainer";
+import { ScoreBoard } from "./components/ScoreBoard";
 import { Account, chargeDemoWin, initDemoAccount } from "./Account";
 
 // for debug in chrome
@@ -40,6 +41,8 @@ loadingMsg.y = (app.screen.height - loadingMsg.height ) / 2;
 
 app.stage.addChild(loadingMsg);
 
+const scores = new ScoreBoard();
+
 const winMsg = new WinMsg({
     color: 0x00ff00,
     height: 360,
@@ -48,6 +51,7 @@ const winMsg = new WinMsg({
     x: 70
 });
 
+let wins = 0;
 
 function onAssetsLoaded() {
     loadingMsg.destroy();
@@ -69,8 +73,12 @@ function onAssetsLoaded() {
     spinBtn.x = app.screen.width - spinBtn.width - 28 - innerMargin;
     spinBtn.y = (app.screen.height - spinBtn.width) / 2;
     spinBtn.addListener('pointerdown', () => playGame());
-
     app.stage.addChild(spinBtn);
+
+    scores.x = app.screen.width - spinBtn.width - 28 - innerMargin;
+    scores.y = (app.screen.height) / 2 + 100;
+    scores.width = spinBtn.width + innerMargin;
+    app.stage.addChild(scores);
 
     winMsg.addListener('pointerdown', () => hideWinMsg());
 
@@ -105,6 +113,7 @@ function onAssetsLoaded() {
             if(isWon()){
                 showWinMsg();
                 chargeDemoWin();
+                wins++;
             }
         } catch(e) {
             alert(e.message);
@@ -120,4 +129,8 @@ function onAssetsLoaded() {
 
     app.ticker.add((delta) => reelContainer.tickUpdateSymbols());
     app.ticker.add((delta) => reelContainer.tickAnimationUpdate());
+    app.ticker.add((delta) => {
+        scores.updateMoney(account.coins);
+        scores.updateWins(wins);
+    });
 }
