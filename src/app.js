@@ -113,6 +113,7 @@ function onAssetsLoaded() {
             if(isWon()){
                 showWinMsg();
                 chargeDemoWin();
+                await account.load();
                 wins++;
             }
         } catch(e) {
