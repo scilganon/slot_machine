@@ -121,7 +121,7 @@ function onAssetsLoaded() {
     }
 
     function isWon(){
-        const symbols = reelContainer.getCurrentCombinationOnPosition(4);
+        const symbols = reelContainer.getCurrentCombinationOnPosition(3);
         const countOfWilds = symbols.filter((symbol) => symbol.isWild()).length;
 
         return countOfWilds > 0 && countOfWilds < 3;
