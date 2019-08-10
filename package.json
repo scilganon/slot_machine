@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "webpack-dev-server",
+    "codestyle": "prettier --write -c src/**/*",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -16,6 +17,7 @@
     "webpack-dev-server": "^3.7.2"
   },
   "devDependencies": {
+    "prettier": "1.18.2",
     "webpack-cli": "^3.3.6"
   }
 }
