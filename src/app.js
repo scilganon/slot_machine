@@ -4,6 +4,7 @@ import { SpinBtn } from "./components/SpinBtn";
 import { WinMsg } from "./components/WinMsg";
 import { LoadingMsg } from "./components/LoadingMsg";
 import { Roller } from "./components/ReelContainer";
+import { Account, chargeDemoWin, initDemoAccount } from "./Account";
 
 // for debug in chrome
 // @see https://github.com/bfanger/pixi-inspector/issues/35#issuecomment-518009811
@@ -24,8 +25,14 @@ SYMBOLS
     .concat([BG, WILD_SYMBOL])
     .forEach((path) => app.loader.add(path, path));
 
+const account = new Account();
+
 app.loader
-    .load(() => setTimeout(onAssetsLoaded, 200));
+    .load(async () => {
+        initDemoAccount();
+        await account.load();
+        setTimeout(onAssetsLoaded, 200)
+    });
 
 const loadingMsg = new LoadingMsg();
 loadingMsg.x = (app.screen.width - loadingMsg.width ) / 2;
@@ -40,6 +47,7 @@ const winMsg = new WinMsg({
     y: 110,
     x: 70
 });
+
 
 function onAssetsLoaded() {
     loadingMsg.destroy();
@@ -82,16 +90,24 @@ function onAssetsLoaded() {
 
     async function playGame() {
         if (running) return;
-        running = true;
-        spinBtn.disable();
 
-        await reelContainer.roll();
+        try {
+            await account.makeBet();
 
-        running = false;
-        spinBtn.enable();
+            running = true;
+            spinBtn.disable();
 
-        if(isWon()){
-            showWinMsg();
+            await reelContainer.roll();
+
+            running = false;
+            spinBtn.enable();
+
+            if(isWon()){
+                showWinMsg();
+                chargeDemoWin();
+            }
+        } catch(e) {
+            alert(e.message);
         }
     }
 
